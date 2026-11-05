@@ -15,10 +15,38 @@ function escapeHtml(value){return String(value).replace(/[&<>"']/g,c=>({"&":"&am
 function errorPosition(error,source){
  const message=String(error&&error.message||"Invalid JSON");
  const match=message.match(/(?:position|at position)\s+(\d+)/i);
- if(!match)return {message,line:null,column:null,position:null};
- const position=Math.max(0,Math.min(Number(match[1]),source.length));
+ if(match){
+  const position=Math.max(0,Math.min(Number(match[1]),source.length));
+  const before=source.slice(0,position);
+  return {message,position,line:before.split("\n").length,column:position-before.lastIndexOf("\n"),approximate:false};
+ }
+ // Some browsers omit the parser offset. This fallback estimates positions
+ // for common bracket, quote, and trailing-token mistakes only.
+ let stack=[],quoted=false,escaped=false,position=null,lastNonWhitespace=-1;
+ for(let i=0;i<source.length;i++){
+  const c=source[i];
+  if(quoted){if(escaped)escaped=false;else if(c==="\\")escaped=true;else if(c==='"')quoted=false;continue;}
+  if(c==='"'){quoted=true;lastNonWhitespace=i;continue;}
+  if(c==="{"||c==="["){stack.push(c);lastNonWhitespace=i;continue;}
+  if(c==="}"||c==="]"){
+   const top=stack[stack.length-1];
+   if(!top||((c==="}")!==(top==="{"))){position=i;break;}
+   stack.pop();lastNonWhitespace=i;continue;
+  }
+  if(!/\s/.test(c))lastNonWhitespace=i;
+ }
+ if(position===null)position=(quoted||stack.length)?source.length:Math.min(source.length,lastNonWhitespace+1);
  const before=source.slice(0,position);
- return {message,position,line:before.split("\n").length,column:position-before.lastIndexOf("\n")};
+ return {message,position,line:before.split("\n").length,column:position-before.lastIndexOf("\n"),approximate:true};
+}
+function clearSchemaResults(){
+ $("#schemaResults").replaceChildren();
+ $("#schemaStatus").textContent=t("schemaIdle");
+}
+function invalidateSchemaResults(){
+ clearSchemaResults();
+ state.batch.forEach(item=>item.result=null);
+ if(state.batch.length)renderBatch();
 }
 function parseJson(text){try{return {ok:true,value:JSON.parse(text)};}catch(error){return {ok:false,error,location:errorPosition(error,text)};}}
 function extractJson(source){
@@ -62,7 +90,11 @@ function diagnose(result){
  if(result.value===null||typeof result.value!=="object")target.innerHTML+='<div class="diagnosis-card"><strong>'+escapeHtml(t("notObject"))+'</strong></div>';
 }
 function analyze(){
- const source=$("#inputText").value;if(!source.trim()){notify(t("noInput"));return;}
+ const source=$("#inputText").value;
+ clearSchemaResults();
+ state.batch.forEach(item=>item.result=null);
+ if(state.batch.length)renderBatch();
+ if(!source.trim()){state.parsed=false;state.value=null;notify(t("noInput"));return;}
  const result=$("#extractToggle").checked?extractJson(source):(()=>{const p=parseJson(source.trim());return p.ok?{found:true,value:p.value,extracted:false}: {found:false,location:p.location};})();
  state.parsed=result.found;state.value=result.found?result.value:null;
  if(result.found){$("#jsonOutput").textContent=JSON.stringify(result.value,null,2);$("#copyJsonButton").disabled=false;$("#downloadJsonButton").disabled=false;$("#validateSchemaButton").disabled=false;}
@@ -134,15 +166,24 @@ function updateLanguage(){
 function setTheme(theme){state.theme=theme;document.documentElement.dataset.theme=theme;try{localStorage.setItem("kerlion-ai-json-debugger-theme",theme);}catch(_){}}
 $("#inputText").addEventListener("input",()=>{$("#inputCount").textContent=$("#inputText").value.length+" "+t("characters");});
 $("#analyzeButton").addEventListener("click",analyze);
-$("#clearInputButton").addEventListener("click",()=>{$("#inputText").value="";$("#inputCount").textContent="0 "+t("characters");state.parsed=false;state.value=null;$("#diagnosisContent").textContent=t("emptyDiagnosis");$("#jsonOutput").textContent=t("jsonPlaceholder");badge("neutral",t("waiting"));$("#copyJsonButton").disabled=true;$("#downloadJsonButton").disabled=true;$("#validateSchemaButton").disabled=true;$("#schemaResults").replaceChildren();$("#schemaStatus").textContent=t("schemaIdle");});
+$("#clearInputButton").addEventListener("click",()=>{
+ $("#inputText").value="";$("#inputCount").textContent="0 "+t("characters");
+ state.parsed=false;state.value=null;
+ $("#diagnosisContent").innerHTML='<div class="empty-state">'+escapeHtml(t("emptyDiagnosis"))+'</div>';
+ $("#jsonOutput").textContent=t("jsonPlaceholder");badge("neutral",t("waiting"));
+ $("#copyJsonButton").disabled=true;$("#downloadJsonButton").disabled=true;$("#validateSchemaButton").disabled=true;
+ clearSchemaResults();state.batch=[];renderBatch();
+});
 $("#loadSampleButton").addEventListener("click",()=>{$("#inputText").value=samples.response;$("#inputCount").textContent=samples.response.length+" "+t("characters");notify(t("loadNotice"));});
-$("#schemaSampleButton").addEventListener("click",()=>{$("#schemaText").value=samples.schema;$("#schemaResults").replaceChildren();notify(t("loadNotice"));});
+$("#schemaSampleButton").addEventListener("click",()=>{$("#schemaText").value=samples.schema;invalidateSchemaResults();notify(t("loadNotice"));});
+$("#schemaText").addEventListener("input",invalidateSchemaResults);
+$("#inputText").addEventListener("input",()=>{clearSchemaResults();state.batch.forEach(item=>item.result=null);if(state.batch.length)renderBatch();});
 $("#copyJsonButton").addEventListener("click",copyJson);
 $("#downloadJsonButton").addEventListener("click",downloadJson);
 $("#validateSchemaButton").addEventListener("click",validateCurrent);
 $("#addSampleButton").addEventListener("click",()=>addBatch());
 $("#runBatchButton").addEventListener("click",runBatch);
-$("#batchList").addEventListener("input",event=>{const row=event.target.closest(".batch-item");if(!row)return;const item=state.batch.find(x=>x.id===row.dataset.id);if(item){item.value=event.target.value;item.result=null;}});
+$("#batchList").addEventListener("input",event=>{const row=event.target.closest(".batch-item");if(!row)return;const item=state.batch.find(x=>x.id===row.dataset.id);if(item){item.value=event.target.value;item.result=null;row.querySelector(".batch-state").textContent="—";}});
 $("#batchList").addEventListener("click",event=>{const button=event.target.closest("[data-remove]");if(!button)return;state.batch=state.batch.filter(x=>x.id!==button.dataset.remove);renderBatch();});
 $("#languageButton").addEventListener("click",()=>{state.lang=state.lang==="en"?"ar":"en";updateLanguage();});
 $("#themeButton").addEventListener("click",()=>setTheme(state.theme==="dark"?"light":"dark"));
