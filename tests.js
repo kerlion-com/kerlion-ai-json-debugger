@@ -1,0 +1,14 @@
+"use strict";
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const app=fs.readFileSync("app.js","utf8");
+const html=fs.readFileSync("index.html","utf8");
+const css=fs.readFileSync("styles.css","utf8");
+for(const token of ["function extractJson","function errorPosition","function validateValue","function runBatch","function escapeHtml","function copyJson","function downloadJson"])assert.ok(app.includes(token),"Missing implementation: "+token);
+for(const id of ["inputText","extractToggle","analyzeButton","diagnosisContent","jsonOutput","schemaText","validateSchemaButton","batchList","runBatchButton","languageButton","themeButton"])assert.ok(html.includes('id="'+id+'"'),"Missing UI control: "+id);
+assert.ok(!app.includes("eval("),"eval must not be used");
+assert.ok(!app.includes("new Function("),"dynamic Function constructor must not be used");
+assert.ok(html.includes('rel="noopener noreferrer"'),"External links must be isolated");
+assert.ok(css.includes("@media(max-width:760px)"),"Responsive mobile layout is required");
+assert.ok(css.includes("[dir=\"rtl\"]"),"RTL layout is required");
+console.log("KERLION AI JSON Debugger static checks passed.");
