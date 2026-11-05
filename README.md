@@ -6,7 +6,7 @@ KERLION AI JSON Debugger is a focused browser-based developer tool for diagnosin
 
 ## Features
 
-- Paste a complete AI response, including explanatory prose and Markdown code fences.
+- Paste complete AI responses, including explanatory prose and Markdown code fences.
 - Extract a JSON object or array from surrounding response text.
 - Parse JSON and report parser details, including line and column when exposed by the browser.
 - Inspect formatted output, copy it, or download it as a JSON file.
