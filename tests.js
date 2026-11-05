@@ -9,6 +9,8 @@ for(const id of ["inputText","extractToggle","analyzeButton","diagnosisContent",
 assert.ok(!app.includes("eval("),"eval must not be used");
 assert.ok(!app.includes("new Function("),"dynamic Function constructor must not be used");
 assert.ok(html.includes('rel="noopener noreferrer"'),"External links must be isolated");
+assert.ok(html.includes("ajv-dist@8.17.1/ajv7.min.js"),"Ajv browser bundle URL must point to ajv-dist");
+assert.ok(app.includes("window.ajv7"),"Ajv browser global must be referenced");
 assert.ok(css.includes("@media(max-width:760px)"),"Responsive mobile layout is required");
 assert.ok(css.includes("[dir=\"rtl\"]"),"RTL layout is required");
 console.log("KERLION AI JSON Debugger static checks passed.");
