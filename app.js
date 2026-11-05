@@ -14,18 +14,18 @@ function notify(text){const el=$("#toast");el.textContent=text;el.classList.add(
 function escapeHtml(value){return String(value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function errorPosition(error,source){
  const message=String(error&&error.message||"Invalid JSON");
- const match=message.match(/(?:position|at position)\\s+(\\d+)/i);
+ const match=message.match(/(?:position|at position)\s+(\d+)/i);
  if(match){
   const position=Math.max(0,Math.min(Number(match[1]),source.length));
   const before=source.slice(0,position);
-  return {message,position,line:before.split("\\n").length,column:position-before.lastIndexOf("\\n"),approximate:false};
+  return {message,position,line:before.split("\n").length,column:position-before.lastIndexOf("\n"),approximate:false};
  }
- // Native JSON.parse messages differ by browser. Provide a best-effort
- // approximate location when the parser does not expose a numeric offset.
+ // Some browsers omit the parser offset. This fallback estimates positions
+ // for common bracket, quote, and trailing-token mistakes only.
  let stack=[],quoted=false,escaped=false,position=null,lastNonWhitespace=-1;
  for(let i=0;i<source.length;i++){
   const c=source[i];
-  if(quoted){if(escaped)escaped=false;else if(c==="\\\\")escaped=true;else if(c==='"')quoted=false;continue;}
+  if(quoted){if(escaped)escaped=false;else if(c==="\\")escaped=true;else if(c==='"')quoted=false;continue;}
   if(c==='"'){quoted=true;lastNonWhitespace=i;continue;}
   if(c==="{"||c==="["){stack.push(c);lastNonWhitespace=i;continue;}
   if(c==="}"||c==="]"){
@@ -33,11 +33,11 @@ function errorPosition(error,source){
    if(!top||((c==="}")!==(top==="{"))){position=i;break;}
    stack.pop();lastNonWhitespace=i;continue;
   }
-  if(!/\\s/.test(c))lastNonWhitespace=i;
+  if(!/\s/.test(c))lastNonWhitespace=i;
  }
  if(position===null)position=(quoted||stack.length)?source.length:Math.min(source.length,lastNonWhitespace+1);
  const before=source.slice(0,position);
- return {message,position,line:before.split("\\n").length,column:position-before.lastIndexOf("\\n"),approximate:true};
+ return {message,position,line:before.split("\n").length,column:position-before.lastIndexOf("\n"),approximate:true};
 }
 function clearSchemaResults(){
  $("#schemaResults").replaceChildren();
