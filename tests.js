@@ -43,7 +43,7 @@ const marker = '$("#inputText").addEventListener("input"';
 const boundary = app.indexOf(marker);
 assert.ok(boundary > 0, "Could not locate browser event registration boundary");
 
-const executable = app.slice(0, boundary) + "})();";
+const executable = app.slice(0, boundary) + "\n globalThis.__parserTests = { extractJson, parseJson };\n})();";
 const sandbox = {
   document: { querySelector() { return null; } },
   window: {},
@@ -56,8 +56,7 @@ const sandbox = {
 };
 
 vm.runInNewContext(executable, sandbox);
-const extract = vm.runInNewContext("extractJson", sandbox);
-const parse = vm.runInNewContext("parseJson", sandbox);
+const { extractJson: extract, parseJson: parse } = sandbox.__parserTests;
 
 // Valid JSON embedded in Markdown.
 const fenced = extract('Result:\n\n```json\n{\n  "ok": true\n}\n```');
