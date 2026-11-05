@@ -22,8 +22,11 @@ assert.ok(css.includes("[dir=\\"rtl\\"]"),"RTL layout is required");
 assert.ok(app.includes("state.batch=[];renderBatch();"),"Clear action must clear batch samples");
 assert.ok(app.includes('addEventListener("input",invalidateSchemaResults)'),"Schema edits must invalidate old results");
 
-// Run the pure parser helpers in a lightweight VM without needing a browser.
-const executable=app.slice(0,app.indexOf('$("#inputText").addEventListener'));
+// Test parser helpers independently of browser event registration.
+const marker='$("#inputText").addEventListener("input"';
+const boundary=app.indexOf(marker);
+assert.ok(boundary>0,"Could not locate browser event registration boundary");
+const executable=app.slice(0,boundary)+"})();";
 const sandbox={document:{querySelector(){return null;}},window:{},localStorage:{getItem(){return null;},setItem(){}},URLSearchParams,location:{search:""},console,setTimeout,clearTimeout};
 vm.runInNewContext(executable,sandbox);
 const extract=vm.runInNewContext("extractJson",sandbox);
@@ -37,8 +40,8 @@ assert.equal(extract('{"x": [1, 2]}').found,true);
 assert.equal(extract("nothing here").found,false);
 assert.equal(parse('{"x":1,}').ok,false);
 assert.equal(parse('{"x":[1,2]}').ok,true);
-const location=parse('{"first":1,\\n"second": }').location;
-assert.ok(location.line>=1);
-assert.ok(location.column>=1);
-assert.equal(typeof location.approximate,"boolean");
+const errorInfo=parse('{"first":1,\\n"second": }').location;
+assert.ok(errorInfo.line>=1);
+assert.ok(errorInfo.column>=1);
+assert.equal(typeof errorInfo.approximate,"boolean");
 console.log("KERLION AI JSON Debugger parser and static tests passed.");
