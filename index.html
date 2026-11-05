@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<meta name="description" content="Debug AI-generated JSON and structured outputs in your browser.">
+<title>KERLION AI JSON Debugger</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/ajv@8.17.1/dist/ajv7.min.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+<a class="brand" href="https://www.kerlionvip.com" target="_blank" rel="noopener noreferrer"><span class="brand-mark">K</span><span>KERLION <small>DEVELOPER TOOLS</small></span></a>
+<div class="top-actions"><span class="privacy"><i></i><span data-i18n="local">Runs locally in your browser</span></span><button id="languageButton" class="btn btn-quiet" type="button">العربية</button><button id="themeButton" class="icon-button" type="button" aria-label="Toggle theme">◐</button></div>
+</header>
+<main class="app-shell">
+<section class="hero"><div class="eyebrow" data-i18n="eyebrow">AI OUTPUT WORKSPACE</div><h1 data-i18n="title">AI JSON Debugger</h1><p data-i18n="subtitle">Inspect, extract, and validate structured output from AI models — without sending your data anywhere.</p><div class="hero-tags"><span>JSON</span><span>JSON Schema</span><span>AI Output</span><span>Client-side</span></div></section>
+<section class="workspace">
+<section class="panel input-panel">
+<div class="panel-heading"><div><span class="step">01</span><div><h2 data-i18n="inputTitle">AI response</h2><p data-i18n="inputHint">Paste the complete response from your AI model.</p></div></div><button id="loadSampleButton" class="btn btn-outline" type="button" data-i18n="sample">Load sample</button></div>
+<textarea id="inputText" spellcheck="false" aria-label="AI response" placeholder="Paste the complete AI response here..."></textarea>
+<div class="input-meta"><span id="inputCount">0 characters</span><button id="clearInputButton" class="text-button" type="button" data-i18n="clear">Clear</button></div>
+<div class="action-row"><label class="check-label"><input id="extractToggle" type="checkbox" checked><span data-i18n="extract">Extract JSON from surrounding text and Markdown fences</span></label><button id="analyzeButton" class="btn btn-primary" type="button"><span data-i18n="analyze">Analyze output</span><span aria-hidden="true">→</span></button></div>
+</section>
+<div class="results-grid">
+<section class="panel result-panel"><div class="panel-heading compact"><div><span class="step">02</span><div><h2 data-i18n="diagnosis">Diagnosis</h2><p data-i18n="diagnosisHint">Syntax check and actionable error details.</p></div></div><span id="parseBadge" class="status-badge neutral" data-i18n="waiting">Waiting</span></div><div id="diagnosisContent" class="empty-state"><span class="empty-icon">⌁</span><p data-i18n="emptyDiagnosis">Analyze an AI response to see its diagnosis here.</p></div></section>
+<section class="panel result-panel"><div class="panel-heading compact"><div><span class="step">03</span><div><h2 data-i18n="structured">Structured JSON</h2><p data-i18n="structuredHint">Review the extracted, formatted result.</p></div></div><div class="mini-actions"><button id="copyJsonButton" class="btn btn-outline" type="button" disabled data-i18n="copy">Copy</button><button id="downloadJsonButton" class="btn btn-outline" type="button" disabled data-i18n="download">Download</button></div></div><pre id="jsonOutput" class="code-output"><code data-i18n="jsonPlaceholder">Formatted JSON will appear here.</code></pre></section>
+</div>
+<section class="panel schema-panel"><div class="panel-heading"><div><span class="step">04</span><div><h2 data-i18n="schemaTitle">JSON Schema validation</h2><p data-i18n="schemaHint">Check whether the AI output matches your expected structure.</p></div></div><button id="schemaSampleButton" class="btn btn-outline" type="button" data-i18n="schemaSample">Load schema example</button></div><textarea id="schemaText" class="schema-input" spellcheck="false" aria-label="JSON Schema" placeholder='{"type":"object","required":["id","name"]}'></textarea><div class="schema-footer"><span id="schemaStatus" data-i18n="schemaIdle">Add a schema to validate the parsed JSON.</span><button id="validateSchemaButton" class="btn btn-primary" type="button" disabled data-i18n="validate">Validate against schema</button></div><div id="schemaResults" class="schema-results" aria-live="polite"></div></section>
+<section class="panel batch-panel"><div class="panel-heading"><div><span class="step">05</span><div><h2 data-i18n="batchTitle">Batch output checks</h2><p data-i18n="batchHint">Test multiple AI responses against the same schema.</p></div></div><button id="addSampleButton" class="btn btn-outline" type="button" data-i18n="addSample">Add sample</button></div><div id="batchList" class="batch-list"><div class="batch-empty" data-i18n="batchEmpty">Add samples to run a consistency check.</div></div><div class="batch-footer"><span id="batchSummary" data-i18n="batchIdle">No samples added</span><button id="runBatchButton" class="btn btn-primary" type="button" disabled data-i18n="runBatch">Run batch checks</button></div></section>
+</section>
+<section class="note"><strong data-i18n="noteTitle">Important</strong><span data-i18n="noteText">This tool diagnoses JSON syntax and validates structure. It does not judge whether AI-generated values are factually correct or safe for your application.</span></section>
+</main>
+<footer class="footer"><span>© <span id="year"></span> KERLION</span><span data-i18n="footer">Built for developers working with AI-generated structured data.</span><a href="https://github.com/kerlion-com/kerlion-ai-json-debugger" target="_blank" rel="noopener noreferrer">GitHub Repository ↗</a></footer>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
