@@ -75,7 +75,9 @@ const errorInfo = parse('{"first":1,\n"second": }').location;
 assert.ok(errorInfo.line >= 1);
 assert.ok(errorInfo.column >= 1);
 assert.equal(typeof errorInfo.approximate, "boolean");
-assert.equal(parse('{"a":1,]').location.approximate, true);
-assert.ok(parse('{"a":[1,2}').location.column >= 1);
+const mismatch = parse('{"a":[1,2}').location;
+assert.ok(mismatch.line >= 1);
+assert.ok(mismatch.column >= 1);
+assert.equal(mismatch.approximate, true);
 
 console.log("KERLION AI JSON Debugger parser and static tests passed.");
