@@ -81,5 +81,5 @@ MIT. See [LICENSE](LICENSE).
 
 Part of the KERLION open-source developer tools collection.
 
-- Website: https://www.kerlionvip.com
-- GitHub: https://github.com/kerlion-com/kerlion-ai-json-debugger
+- Developed by: KERLION — https://www.kerlionvip.com/
+- Project repository: https://github.com/kerlion-com/kerlion-ai-json-debugger
