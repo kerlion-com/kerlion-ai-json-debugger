@@ -12,6 +12,10 @@ KERLION AI JSON Debugger is a focused browser-based developer tool for diagnosin
 
 AI JSON debugger, AI output validation, JSON validator, JSON formatter, JSON syntax checker, JSON Schema validator, structured output testing, AI response parser, batch JSON validation.
 
+## Arabic Usage Guide
+
+Prefer instructions in Arabic? Read the [Arabic project and usage guide](https://www.kerlionvip.com/2026/11/kerlion-ai-json-debugger.html) for an explanation of the tool and how to use it.
+
 ## Features
 
 - Paste complete AI responses, including explanatory prose and Markdown code fences.
