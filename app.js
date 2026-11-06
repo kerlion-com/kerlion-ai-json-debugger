@@ -43,6 +43,16 @@ function clearSchemaResults(){
  $("#schemaResults").replaceChildren();
  $("#schemaStatus").textContent=t("schemaIdle");
 }
+function resetParsedOutput(){
+ state.parsed=false;state.value=null;
+ $("#jsonOutput").textContent=t("jsonPlaceholder");
+ $("#copyJsonButton").disabled=true;
+ $("#downloadJsonButton").disabled=true;
+ $("#validateSchemaButton").disabled=true;
+ $("#diagnosisContent").innerHTML='<div class="empty-state">'+escapeHtml(t("emptyDiagnosis"))+'</div>';
+ badge("neutral",t("waiting"));
+ clearSchemaResults();
+}
 function invalidateSchemaResults(){
  clearSchemaResults();
  state.batch.forEach(item=>item.result=null);
@@ -94,11 +104,11 @@ function analyze(){
  clearSchemaResults();
  state.batch.forEach(item=>item.result=null);
  if(state.batch.length)renderBatch();
- if(!source.trim()){state.parsed=false;state.value=null;notify(t("noInput"));return;}
+ if(!source.trim()){resetParsedOutput();notify(t("noInput"));return;}
  const result=$("#extractToggle").checked?extractJson(source):(()=>{const p=parseJson(source.trim());return p.ok?{found:true,value:p.value,extracted:false}: {found:false,location:p.location};})();
  state.parsed=result.found;state.value=result.found?result.value:null;
  if(result.found){$("#jsonOutput").textContent=JSON.stringify(result.value,null,2);$("#copyJsonButton").disabled=false;$("#downloadJsonButton").disabled=false;$("#validateSchemaButton").disabled=false;}
- else{$("#jsonOutput").textContent=t("jsonPlaceholder");$("#copyJsonButton").disabled=true;$("#downloadJsonButton").disabled=true;$("#validateSchemaButton").disabled=true;}
+ else{resetParsedOutput(); diagnose(result); return;}
  diagnose(result);
 }
 function ajvInstance(){if(!window.ajv7)return null;const Ajv=window.ajv7.default||window.ajv7;try{return new Ajv({allErrors:true,strict:false,allowUnionTypes:true});}catch(_){return null;}}
@@ -164,20 +174,16 @@ function updateLanguage(){
  renderBatch(state.batch.length?undefined:t("batchIdle"));
 }
 function setTheme(theme){state.theme=theme;document.documentElement.dataset.theme=theme;try{localStorage.setItem("kerlion-ai-json-debugger-theme",theme);}catch(_){}}
-$("#inputText").addEventListener("input",()=>{$("#inputCount").textContent=$("#inputText").value.length+" "+t("characters");});
+$("#inputText").addEventListener("input",()=>{$("#inputCount").textContent=$("#inputText").value.length+" "+t("characters");resetParsedOutput();state.batch.forEach(item=>item.result=null);if(state.batch.length)renderBatch();});
 $("#analyzeButton").addEventListener("click",analyze);
 $("#clearInputButton").addEventListener("click",()=>{
  $("#inputText").value="";$("#inputCount").textContent="0 "+t("characters");
- state.parsed=false;state.value=null;
- $("#diagnosisContent").innerHTML='<div class="empty-state">'+escapeHtml(t("emptyDiagnosis"))+'</div>';
- $("#jsonOutput").textContent=t("jsonPlaceholder");badge("neutral",t("waiting"));
- $("#copyJsonButton").disabled=true;$("#downloadJsonButton").disabled=true;$("#validateSchemaButton").disabled=true;
- clearSchemaResults();state.batch=[];renderBatch();
+ resetParsedOutput();state.batch=[];renderBatch();
 });
-$("#loadSampleButton").addEventListener("click",()=>{$("#inputText").value=samples.response;$("#inputCount").textContent=samples.response.length+" "+t("characters");notify(t("loadNotice"));});
+$("#loadSampleButton").addEventListener("click",()=>{$("#inputText").value=samples.response;$("#inputCount").textContent=samples.response.length+" "+t("characters");resetParsedOutput();state.batch.forEach(item=>item.result=null);if(state.batch.length)renderBatch();notify(t("loadNotice"));});
 $("#schemaSampleButton").addEventListener("click",()=>{$("#schemaText").value=samples.schema;invalidateSchemaResults();notify(t("loadNotice"));});
 $("#schemaText").addEventListener("input",invalidateSchemaResults);
-$("#inputText").addEventListener("input",()=>{clearSchemaResults();state.batch.forEach(item=>item.result=null);if(state.batch.length)renderBatch();});
+
 $("#copyJsonButton").addEventListener("click",copyJson);
 $("#downloadJsonButton").addEventListener("click",downloadJson);
 $("#validateSchemaButton").addEventListener("click",validateCurrent);
