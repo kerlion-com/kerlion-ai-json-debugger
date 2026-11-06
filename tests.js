@@ -15,7 +15,8 @@ for (const token of [
   "function escapeHtml",
   "function copyJson",
   "function downloadJson",
-  "function invalidateSchemaResults"
+  "function invalidateSchemaResults",
+  "function resetParsedOutput"
 ]) {
   assert.ok(app.includes(token), "Missing implementation: " + token);
 }
@@ -31,6 +32,9 @@ for (const id of [
 assert.ok(!app.includes("eval("), "eval must not be used");
 assert.ok(!app.includes("new Function("), "dynamic Function constructor must not be used");
 assert.ok(html.includes('rel="noopener noreferrer"'), "External links must be isolated");
+assert.ok(html.includes('Developed by KERLION'), "KERLION development credit must be present");
+assert.ok(html.includes('https://www.kerlionvip.com/'), "Official website link must be present");
+assert.ok(html.includes('https://github.com/kerlion-com/kerlion-ai-json-debugger'), "Repository link must be present");
 assert.ok(html.includes("ajv-dist@8.17.1/ajv7.min.js"), "Ajv browser bundle URL must point to ajv-dist");
 assert.ok(app.includes("window.ajv7"), "Ajv browser global must be referenced");
 assert.ok(css.includes("@media(max-width:760px)"), "Responsive mobile layout is required");
@@ -67,6 +71,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(fenced.value)), { ok: true });
 assert.equal(extract("prefix [1,2,3] suffix").found, true);
 assert.equal(extract('{"x": [1, 2]}').found, true);
 assert.equal(extract("nothing here").found, false);
+assert.equal(extract('First: \`\`\`json\\n{"a":1}\\n\`\`\`\\nSecond: \`\`\`json\\n{"b":2}\\n\`\`\`').found, true);
 assert.equal(parse('{"x":1,}').ok, false);
 assert.equal(parse('{"x":[1,2]}').ok, true);
 
