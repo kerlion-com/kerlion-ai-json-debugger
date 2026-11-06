@@ -29,9 +29,9 @@ jobs:
         run: |
           ARCHIVE="KERLION-AI-JSON-Debugger-${GITHUB_REF_NAME}.zip"
           zip -r "$ARCHIVE" index.html styles.css app.js README.md LICENSE tests.js assets
+          echo "ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
 
       - name: Attach package to GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release upload "${GITHUB_REF_NAME}" "$ARCHIVE" --clobber
+        run: gh release upload "${GITHUB_REF_NAME}" "$ARCHIVE" --clobber
