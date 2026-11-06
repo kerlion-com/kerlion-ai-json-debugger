@@ -20,3 +20,5 @@ jobs:
         run: node --check app.js
       - name: Run project checks
         run: node tests.js
+      - name: Validate README preview asset
+        run: test -f assets/og-cover.svg
